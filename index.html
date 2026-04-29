@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Deli Pedidos</title>
+
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#6366f1">
+
+    <!-- Apple PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Deli Express">
+    <link rel="apple-touch-icon" href="./icon-192.png">
+
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --secondary: #ec4899;
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --success: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image:
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.15) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+        }
+
+        .glass-panel {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            margin-bottom: 24px;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            text-align: center;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 14px 16px;
+            border-radius: 12px;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        .product-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .product-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .product-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .product-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .product-price {
+            color: var(--secondary);
+            font-weight: 700;
+        }
+
+        .controls-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            border: 1px solid transparent;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .btn-danger:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: white;
+            border: none;
+            padding: 16px;
+            width: 100%;
+            font-size: 1.1rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 20px -10px var(--primary);
+            margin-top: 10px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px -10px var(--primary);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+            border: none;
+            padding: 16px;
+            width: 100%;
+            font-size: 1.1rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 20px -10px var(--success);
+            margin-top: 10px;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px -10px var(--success);
+        }
+
+        .custom-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-grow: 1;
+            min-width: 120px;
+        }
+
+        .custom-input-wrapper input {
+            padding: 8px 12px;
+            height: 35px;
+        }
+
+        .product-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .subtotal-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .subtotal-value {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .summary-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .total-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .total-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .total-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-main);
+            background: linear-gradient(to right, #fff, #cbd5e1);
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+
+        /* Views */
+        #order-view {
+            display: block;
+        }
+
+        #summary-view {
+            display: block;
+        }
+
+        .summary-list {
+            margin: 20px 0;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .summary-item-title {
+            font-weight: 600;
+        }
+
+        .summary-item-details {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .summary-item-price {
+            font-weight: 700;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        /* Floating particles background effect */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .greeting {
+            text-align: center;
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .greeting span {
+            color: var(--primary);
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <!-- Order View -->
+        <div id="order-view" class="animate-fade-in">
+            <h1>🍔 Deli Express</h1>
+
+            <div class="glass-panel">
+                <div class="input-group">
+                    <label for="customerName">Tu Nombre</label>
+                    <input type="text" id="customerName" placeholder="Ej: María Gómez" autocomplete="off">
+                </div>
+            </div>
+
+            <div class="glass-panel">
+                <h2>Menú</h2>
+                <div id="products-container">
+                    <!-- Products injected via JS -->
+                </div>
+
+                <div class="summary-section">
+                    <button id="btn-clear-all" class="btn btn-danger">Borrar Todo</button>
+                    <div class="total-wrapper" style="text-align: right;">
+                        <span class="total-label">Total del Pedido</span>
+                        <span class="total-value" id="grand-total">$0</span>
+                    </div>
+                </div>
+
+                <button id="btn-place-order" class="btn btn-primary" style="margin-top: 24px;">Hacer Pedido</button>
+            </div>
+        </div>
+
+        <!-- Summary View -->
+        <div id="summary-view" class="glass-panel hidden">
+            <h1>Resumen del Pedido</h1>
+
+            <div class="greeting">
+                ¡Gracias por tu pedido, <span id="summary-name"></span>!
+            </div>
+
+            <div class="summary-list" id="summary-list">
+                <!-- Summary items injected via JS -->
+            </div>
+
+            <div class="summary-section"
+                style="border-top: 2px dashed rgba(255,255,255,0.2); margin-top: 10px; padding-top: 20px;">
+                <div class="total-wrapper">
+                    <span class="total-label">Total a Pagar</span>
+                    <span class="total-value" id="summary-total">$0</span>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 30px;">
+                <button id="btn-back" class="btn" style="flex: 1; padding: 16px;">Modificar</button>
+                <button id="btn-confirm" class="btn btn-success" style="flex: 2; margin-top: 0;">Hacer otro
+                    pedido</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Formatter for COP currency
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('es-CO', {
+                style: 'currency',
+                currency: 'COP',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(value);
+        }
+
+        // Products Data
+        var products = [
+            { id: 'cubano', name: 'Sándwich Cubano', price: 25000 },
+            { id: 'pinchos', name: 'Pinchos', price: 20000 },
+            { id: 'crispetas', name: 'Crispetas', price: 10000 },
+            { id: 'agua', name: 'Botella de Agua', price: 12000 },
+            { id: 'cocacola', name: 'Coca Cola', price: 12000 }
+        ];
+
+        // State
+        var state = {
+            name: '',
+            order: {}
+        };
+
+        // Initialize state
+        for (var i = 0; i < products.length; i++) {
+            state.order[products[i].id] = 0;
+        }
+
+        // DOM Elements
+        var nameInput = document.getElementById('customerName');
+        var productsContainer = document.getElementById('products-container');
+        var grandTotalEl = document.getElementById('grand-total');
+        var orderView = document.getElementById('order-view');
+        var summaryView = document.getElementById('summary-view');
+
+        // Name Handling
+        var savedName = null;
+        try {
+            savedName = localStorage.getItem('deli_customer_name');
+        } catch (err) {
+            console.warn('localStorage no disponible');
+        }
+
+        if (savedName) {
+            nameInput.value = savedName;
+            state.name = savedName;
+        }
+
+        nameInput.addEventListener('input', function(e) {
+            state.name = e.target.value;
+            try {
+                localStorage.setItem('deli_customer_name', state.name);
+            } catch (err) { }
+        });
+
+        // Render Products - builds the full DOM initially
+        function renderProducts() {
+            productsContainer.innerHTML = '';
+
+            for (var i = 0; i < products.length; i++) {
+                var product = products[i];
+                var qty = state.order[product.id];
+                var subtotal = qty * product.price;
+
+                var card = document.createElement('div');
+                card.className = 'product-card';
+                card.setAttribute('data-product-id', product.id);
+
+                // Header
+                var header = document.createElement('div');
+                header.className = 'product-header';
+                var titleSpan = document.createElement('span');
+                titleSpan.className = 'product-title';
+                titleSpan.textContent = product.name;
+                var priceSpan = document.createElement('span');
+                priceSpan.className = 'product-price';
+                priceSpan.textContent = formatCurrency(product.price);
+                header.appendChild(titleSpan);
+                header.appendChild(priceSpan);
+                card.appendChild(header);
+
+                // Controls Row
+                var controlsRow = document.createElement('div');
+                controlsRow.className = 'controls-row';
+
+                // Quick buttons
+                var quickValues = [5, 10, 15, 20];
+                for (var j = 0; j < quickValues.length; j++) {
+                    var btn = document.createElement('button');
+                    btn.className = 'btn' + (qty === quickValues[j] ? ' active' : '');
+                    btn.textContent = quickValues[j];
+                    btn.setAttribute('data-product', product.id);
+                    btn.setAttribute('data-qty', quickValues[j]);
+                    btn.addEventListener('click', onQuickButtonClick);
+                    controlsRow.appendChild(btn);
+                }
+
+                // Custom input
+                var inputWrapper = document.createElement('div');
+                inputWrapper.className = 'custom-input-wrapper';
+                var input = document.createElement('input');
+                input.type = 'number';
+                input.min = '0';
+                input.inputMode = 'numeric';
+                input.pattern = '[0-9]*';
+                input.placeholder = 'Cant.';
+                input.value = qty > 0 ? qty : '';
+                input.setAttribute('data-product', product.id);
+                input.addEventListener('input', onCustomInputChange);
+                input.addEventListener('change', onCustomInputChange);
+                inputWrapper.appendChild(input);
+                controlsRow.appendChild(inputWrapper);
+                card.appendChild(controlsRow);
+
+                // Footer
+                var footer = document.createElement('div');
+                footer.className = 'product-footer';
+
+                var clearBtn = document.createElement('button');
+                clearBtn.className = 'btn btn-danger';
+                clearBtn.style.padding = '6px 12px';
+                clearBtn.style.fontSize = '0.8rem';
+                clearBtn.textContent = 'Borrar';
+                clearBtn.setAttribute('data-product', product.id);
+                clearBtn.addEventListener('click', onClearProduct);
+                footer.appendChild(clearBtn);
+
+                var subtotalDiv = document.createElement('div');
+                subtotalDiv.style.textAlign = 'right';
+                var subLabel = document.createElement('span');
+                subLabel.className = 'subtotal-label';
+                subLabel.textContent = 'Subtotal: ';
+                var subValue = document.createElement('span');
+                subValue.className = 'subtotal-value' + (qty > 0 ? ' product-price' : '');
+                subValue.setAttribute('data-subtotal', product.id);
+                subValue.textContent = formatCurrency(subtotal);
+                subtotalDiv.appendChild(subLabel);
+                subtotalDiv.appendChild(subValue);
+                footer.appendChild(subtotalDiv);
+                card.appendChild(footer);
+
+                productsContainer.appendChild(card);
+            }
+            updateTotal();
+        }
+
+        // Quick button click handler
+        function onQuickButtonClick(e) {
+            var productId = e.currentTarget.getAttribute('data-product');
+            var qty = parseInt(e.currentTarget.getAttribute('data-qty'));
+            state.order[productId] = qty;
+            updateProductCard(productId);
+            updateTotal();
+        }
+
+        // Custom input change handler - updates state WITHOUT re-rendering
+        function onCustomInputChange(e) {
+            var productId = e.target.getAttribute('data-product');
+            var val = parseInt(e.target.value);
+            if (isNaN(val) || val < 0) val = 0;
+            state.order[productId] = val;
+            updateProductCard(productId, true);
+            updateTotal();
+        }
+
+        // Clear single product handler
+        function onClearProduct(e) {
+            var productId = e.currentTarget.getAttribute('data-product');
+            state.order[productId] = 0;
+            updateProductCard(productId);
+            updateTotal();
+        }
+
+        // Update only the specific product card without re-rendering everything
+        function updateProductCard(productId, skipInput) {
+            var card = productsContainer.querySelector('[data-product-id="' + productId + '"]');
+            if (!card) return;
+
+            var qty = state.order[productId];
+            var product = null;
+            for (var i = 0; i < products.length; i++) {
+                if (products[i].id === productId) { product = products[i]; break; }
+            }
+            if (!product) return;
+
+            var subtotal = qty * product.price;
+
+            // Update quick buttons active state
+            var buttons = card.querySelectorAll('.controls-row .btn');
+            for (var j = 0; j < buttons.length; j++) {
+                var btnQty = parseInt(buttons[j].getAttribute('data-qty'));
+                if (btnQty === qty) {
+                    buttons[j].classList.add('active');
+                } else {
+                    buttons[j].classList.remove('active');
+                }
+            }
+
+            // Update input value only if we aren't currently typing in it
+            if (!skipInput) {
+                var input = card.querySelector('input[type="number"]');
+                if (input) {
+                    input.value = qty > 0 ? qty : '';
+                }
+            }
+
+            // Update subtotal
+            var subValue = card.querySelector('[data-subtotal="' + productId + '"]');
+            if (subValue) {
+                subValue.textContent = formatCurrency(subtotal);
+                if (qty > 0) {
+                    subValue.classList.add('product-price');
+                } else {
+                    subValue.classList.remove('product-price');
+                }
+            }
+        }
+
+        // Global setQuantity for any remaining inline calls
+        function setQuantity(productId, qty) {
+            var parsedQty = parseInt(qty);
+            if (isNaN(parsedQty) || parsedQty < 0) parsedQty = 0;
+            state.order[productId] = parsedQty;
+            updateProductCard(productId);
+            updateTotal();
+        }
+        window.setQuantity = setQuantity;
+
+        function updateTotal() {
+            var total = 0;
+            for (var i = 0; i < products.length; i++) {
+                total += (state.order[products[i].id] || 0) * products[i].price;
+            }
+            grandTotalEl.textContent = formatCurrency(total);
+        }
+
+        document.getElementById('btn-clear-all').addEventListener('click', function() {
+            if (confirm('¿Estás seguro de que deseas borrar todo el pedido?')) {
+                for (var i = 0; i < products.length; i++) {
+                    state.order[products[i].id] = 0;
+                }
+                renderProducts();
+            }
+        });
+
+        document.getElementById('btn-place-order').addEventListener('click', function() {
+            if (!state.name.trim()) {
+                alert('Por favor, ingresa tu nombre para continuar.');
+                nameInput.focus();
+                return;
+            }
+
+            var totalItems = 0;
+            for (var key in state.order) {
+                totalItems += state.order[key];
+            }
+            if (totalItems === 0) {
+                alert('Por favor, selecciona al menos un producto.');
+                return;
+            }
+
+            showSummary();
+        });
+
+        // Summary View Logic
+        function showSummary() {
+            document.getElementById('summary-name').textContent = state.name;
+
+            var summaryList = document.getElementById('summary-list');
+            summaryList.innerHTML = '';
+
+            var total = 0;
+            for (var i = 0; i < products.length; i++) {
+                var p = products[i];
+                var qty = state.order[p.id];
+                if (qty > 0) {
+                    var subtotal = qty * p.price;
+                    total += subtotal;
+
+                    var item = document.createElement('div');
+                    item.className = 'summary-item';
+
+                    var leftDiv = document.createElement('div');
+                    var titleDiv = document.createElement('div');
+                    titleDiv.className = 'summary-item-title';
+                    titleDiv.textContent = p.name;
+                    var detailsDiv = document.createElement('div');
+                    detailsDiv.className = 'summary-item-details';
+                    detailsDiv.textContent = qty + ' unidades x ' + formatCurrency(p.price);
+                    leftDiv.appendChild(titleDiv);
+                    leftDiv.appendChild(detailsDiv);
+
+                    var priceDiv = document.createElement('div');
+                    priceDiv.className = 'summary-item-price';
+                    priceDiv.textContent = formatCurrency(subtotal);
+
+                    item.appendChild(leftDiv);
+                    item.appendChild(priceDiv);
+                    summaryList.appendChild(item);
+                }
+            }
+
+            document.getElementById('summary-total').textContent = formatCurrency(total);
+
+            orderView.classList.add('hidden');
+            summaryView.classList.remove('hidden');
+            summaryView.classList.add('animate-fade-in');
+
+            window.scrollTo(0, 0);
+        }
+
+        document.getElementById('btn-back').addEventListener('click', function() {
+            summaryView.classList.add('hidden');
+            orderView.classList.remove('hidden');
+            orderView.classList.add('animate-fade-in');
+        });
+
+        document.getElementById('btn-confirm').addEventListener('click', function() {
+            alert('¡Pedido confirmado exitosamente! Gracias ' + state.name);
+            for (var i = 0; i < products.length; i++) {
+                state.order[products[i].id] = 0;
+            }
+            renderProducts();
+            summaryView.classList.add('hidden');
+            orderView.classList.remove('hidden');
+        });
+
+        // Initial render
+        renderProducts();
+
+    </script>
+
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('./sw.js').then(function(registration) {
+                    console.log('SW registrado:', registration.scope);
+                }).catch(function(error) {
+                    console.log('SW error:', error);
+                });
+            });
+        }
+    </script>
+</body>
+
+</html>
